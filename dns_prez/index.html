@@ -264,37 +264,8 @@ INTRODUCTION
     * "NS and MX records should not point to CNAMES"
                 </section>
                 <section>
-<pre><code class="asciidoc">
-10.3. MX and NS records
-
-   The domain name used as the value of a NS resource record, or part of
-   the value of a MX resource record must not be an alias.  Not only is
-   the specification clear on this point, but using an alias in either
-   of these positions neither works as well as might be hoped, nor well
-   fulfills the ambition that may have led to this approach.  This
-   domain name must have as its value one or more address records.
-   Currently those will be A records, however in the future other record
-   types giving addressing information may be acceptable.  It can also
-   have other RRs, but never a CNAME RR.
-
-   Searching for either NS or MX records causes "additional section
-   processing" in which address records associated with the value of the
-   record sought are appended to the answer.  This helps avoid needless
-   extra queries that are easily anticipated when the first was made.
-
-   Additional section processing does not include CNAME records, let
-   alone the address records that may be associated with the canonical
-   name derived from the alias.  Thus, if an alias is used as the value
-   of an NS or MX record, no address will be returned with the NS or MX
-   value.  This can cause extra queries, and extra network burden, on
-   every query.  It is trivial for the DNS administrator to avoid this
-   by resolving the alias and placing the canonical name directly in the
-   affected record just once when it is updated or installed.  In some
-   particular hard cases the lack of the additional section address
-   records in the results of a NS lookup can cause the request to fail.
-</code></pre>
+<img src="res/dns_fmt.jpg">
                 </section>
-
                 <section>
 Install dig
                 <pre><code class="asciidoc">
