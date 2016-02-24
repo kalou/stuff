@@ -118,7 +118,6 @@ NET : 11.0.0.0 : DODIIS :
                         <script type="text/template">
     # rfc882
     ### https://tools.ietf.org/html/rfc882
-    ### my.domainname.com
                         </script>
                     </section>
                     <section>
@@ -233,6 +232,12 @@ INTRODUCTION
     ### Size matters.
                 </section>
                 <section data-markdown>
+    ## RFC882 is obsoleted by RFC1034
+    ## Implementation details are in RFC1035
+    ### RFC1034 is updated by 1101, 1183, 1348, 1876, 1982, 2065, 2181, 2308, 2535, 4033, 4034, 4035, 4343, 4035, 4592, 5936
+    ### RFC1035 is updated by 1101, 1183, 1348, 1876, 1982, 1995, 1996, 2065, 2136, 2181, 2137, 2308, 2535, 2673, 2845, 3425, 3658, 4033, 4034, 4035, 4343, 5936, 5966, 6604
+                </section>
+                <section data-markdown>
     ## The question
     #### Name, Type
     ## The answer
@@ -242,8 +247,8 @@ INTRODUCTION
     Types
 <p>
     <ul>
-    <li class="fragment" data-fragment-index="0">A (an IP address)</li>
-    <li class="fragment" data-fragment-index="1">AAAA (an IPv6 address)</li>
+    <li class="fragment" data-fragment-index="0">A (an IP address), AAAA (an IPv6 address)</li>
+    <li class="fragment" data-fragment-index="1">CNAME (a convenient host alias)</li>
     <li class="fragment" data-fragment-index="2">MX (mail exchange service)</li>
     <li class="fragment" data-fragment-index="3">TXT ("Hello, there")</li>
     <li class="fragment" data-fragment-index="4">NS (a nameserver for this name)</li>
@@ -253,15 +258,6 @@ INTRODUCTION
     <li class="fragment" data-fragment-index="8">DS IPSECKEY HINFO L64 MINFO NS SRV SSHFP DLV EUI48 ISDN OPT UNSPEC CERT L32 NINFO NSAP</li>
     <li class="fragment" data-fragment-index="9">NSEC3 NSEC3PARAM TSIG KEY KX TA TLSA CNAME HIP URI MG MR WKS SOA SPF GPOS PX AXFR DNSKEY</li>
     </ul>
-                </section>
-                <section data-markdown>
-    * CNAME is a special case worth knowing.
-    * It means refer to this canonical name, and is an alias
-      * Useful to setup your blog to point to some.blog.wordpress.com
-      * So you don't have to track that IP address
-    * If it has a CNAME record, a name cannot have any other records
-      * Apart from DNSSEC records (NSEC*, RRSIG).
-    * "NS and MX records should not point to CNAMES"
                 </section>
                 <section>
 <img src="res/dns_fmt.jpg">
@@ -308,6 +304,38 @@ dns4.gandi.net.         86400   IN      AAAA    2001:4b98:dc2:90:217:70:186:184
 ;; MSG SIZE  rcvd: 341
                 </code></pre>
                 </section>
+                <section>
+How does a typical zone file look like ?
+                <pre><code class="bind">
+@       IN SOA dns.gandi.net. hostmaster.gandi.net. (
+            1419475273 ; serial
+            10800      ; refresh (3 hours)
+            3600       ; retry (1 hour)
+            604800     ; expire (1 week)
+            10800      ; minimum (3 hours)
+        )
+
+;; NS, MX entries at apex
+        IN          NS a.dns.gandi.net.
+                    NS b.dns.gandi.net.
+                    NS c.dns.gandi.net.
+
+                    MX 10 spool.mail.gandi.net.
+                    MX 50 fb.mail.gandi.net.
+
+;; Cheap load balancer
+www                  A 10.5.3.1
+                     A 10.5.3.2
+
+;; Short TTL override
+temporary  30     IN A 127.0.0.3
+
+$ORIGIN seemingly.invalid.tfz.net.
+@ 10800 IN CNAME 217.70.184.38
+
+217.70.184.38 300 IN A 217.70.184.38
+                </code></pre>
+                </section>
             </section>
             <section data-transition="fade-out">
                <pre><code class="asciidoc" data-noescape>
@@ -332,7 +360,7 @@ The resolver:
 The resolver asking the recursive caching nameserver
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
 
@@ -350,7 +378,7 @@ The resolver asking the recursive caching nameserver
 The resolver getting a reply from the recursive NS
 
  /----------\                                      /-------------\
- |  Client  |  <= A "www.google.com" 1.2.3.4  <==  |    Campus   |
+ |  Client  |  <= A "www.domain.com" 1.2.3.4  <==  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
 
@@ -369,7 +397,7 @@ But how does the recursive NS find this information ?
 
             <section data-transition="fade-out">
                <pre><code class="asciidoc" data-noescape>
-You, typing "www.google.com":
+You, typing "www.domain.com":
 
  /----------\
  |  Client  |
@@ -387,10 +415,10 @@ You, typing "www.google.com":
             </section>
             <section data-transition="fade-in fade-out">
                <pre><code class="asciidoc" data-noescape>
-You, typing "www.google.com":
+You, typing "www.domain.com":
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
 
@@ -408,11 +436,11 @@ You, typing "www.google.com":
 (You, waiting)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
                                                           |
-                                                  ? www.google.com
+                                                  ? www.domain.com
                                                           v
                                                    /-------------\
                                                    |  . (gods)   |
@@ -426,7 +454,7 @@ You, typing "www.google.com":
 (You, still waiting)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
                                                           ^
@@ -444,7 +472,7 @@ You, typing "www.google.com":
 (You, still waiting)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
                                                           |
@@ -463,11 +491,11 @@ You, typing "www.google.com":
 (You, still waiting)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                      =============== \-------------/
                                    |
-                            www.google.com A ?
+                            www.domain.com A ?
                                    v
                             /-------------\        /-------------\
                             |  .com (vsn) |        |  . (gods)   |
@@ -481,11 +509,11 @@ You, typing "www.google.com":
 (You, still waiting)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                      ==============> \-------------/
                                    ^
-                            DUNNO ASK TO LARRY (TTL ..)
+                            DUNNO ASK DOMAIN.COM
                                    |
                             /-------------\        /-------------\
                             |  .com (vsn) |        |  . (gods)   |
@@ -499,14 +527,14 @@ You, typing "www.google.com":
 (You, still experiencing microsecond boredom)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/    ================================= \-------------/
                  |
-         www.google.com A ?
+         www.domain.com A ?
                  v
          /-------------\    /-------------\        /-------------\
-         |  google.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -517,14 +545,14 @@ You, typing "www.google.com":
 (You, still experiencing microsecond boredom)
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/    ================================= \-------------/
                  ^
          SURE THING, use 74.125.224.9, TTL is 300 seconds
                  |
          /-------------\    /-------------\        /-------------\
-         |  google.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -535,14 +563,14 @@ You, typing "www.google.com":
 (That was quick, a few milliseconds)
 
  /----------\                                      /-------------\
- |  Client  |  <= "www.google.com" has 74.125.224. |    Campus   |
+ |  Client  |  <= "www.domain.com" has 74.125.224. |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
 
          SURE THING, use 74.125.224.9, TTL..
 
          /-------------\    /-------------\        /-------------\
-         |  google.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -553,7 +581,7 @@ You, typing "www.google.com":
 Now what if you ask the same question again a few seconds after ?
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "www.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
 
@@ -571,7 +599,7 @@ Now what if you ask the same question again a few seconds after ?
 The recursive NS cached this for TTL seconds, immediate answer
 
  /----------\                                      /-------------\
- |  Client  |  <= A "www.google.com" 1.2.3.4  <==  |    Campus   |
+ |  Client  |  <= A "www.domain.com" 1.2.3.4  <==  |    Campus   |
  | Computer |          (294 seconds left)          | Name Server |
  \----------/                                      \-------------/
 
@@ -587,17 +615,17 @@ The recursive NS cached this for TTL seconds, immediate answer
 
             <section data-transition="fade-in fade-out">
                <pre><code class="asciidoc" data-noescape>
-And what if you ask for dev.google.com minutes later ?
+And what if you ask for dev.domain.com minutes later ?
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "dev.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "dev.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/                                      \-------------/
 
 
 
          /-------------\    /-------------\        /-------------\
-         |  google.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -605,17 +633,17 @@ And what if you ask for dev.google.com minutes later ?
             </section>
             <section data-transition="fade-in fade-out">
                <pre><code class="asciidoc" data-noescape>
-Name server cached the information from . and .com about google.com
+Name server cached the information from . and .com about domain.com
 
  /----------\                                      /-------------\
- |  Client  |  => Q? "dev.google.com" Type=A  ==>  |    Campus   |
+ |  Client  |  => Q? "dev.domain.com" Type=A  ==>  |    Campus   |
  | Computer |                                      | Name Server |
  \----------/    ================================= \-------------/
                  |
-         dev.google.com A ?
+         dev.domain.com A ?
                  v
          /-------------\    /-------------\        /-------------\
-         |  google.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
