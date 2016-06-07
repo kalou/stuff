@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js – The HTML Presentation Framework</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section data-markdown>
+                    <script type="text/template">
+# DNS workshop
+#### Pascal @gandi.net
+#### Images borrowed from the internet, CC licenses
+                    </script>
+				</section>
+                <section data-markdown>
+                    <script type="text/template">
+    # The domain name system defines:
+    * How to name all the things
+    * With no conflicts
+    * With delegation and separated management
+    * A *protocol* to query for *information* associated with a *name*
+                    </script>
+                </section>
+                <section data-transition="fade-in fade-out">
+                    <p>And now everyone adds a server to handle their zones
+                    <p><img src="res/hiera5.jpg">
+                </section>
+
+            <section data-transition="fade-out">
+               <pre><code class="asciidoc" data-noescape>
+The resolver:
+
+ /----------\
+ |  Client  |
+ | Computer |
+ \----------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+The resolver asking the recursive caching nameserver
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+The resolver getting a reply from the recursive NS
+
+ /----------\                                      /-------------\
+ |  Client  |  <= A "www.domain.com" 1.2.3.4  <==  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+            <section>
+But how does the recursive NS find this information ?
+            </section>
+
+            <section data-transition="fade-out">
+               <pre><code class="asciidoc" data-noescape>
+You, typing "www.domain.com":
+
+ /----------\
+ |  Client  |
+ | Computer |
+ \----------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+You, typing "www.domain.com":
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, waiting)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+                                                          |
+                                                  ? www.domain.com
+                                                          v
+                                                   /-------------\
+                                                   |  . (root)   |
+                                                   | Name Server |
+                                                   \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, still waiting)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+                                                          ^
+                                                  DUNNO ASK TO .COM
+                                                          |
+                                                   /-------------\
+                                                   |  . (root)   |
+                                                   | Name Server |
+                                                   \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, still waiting)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+                                                          |
+                                                      kthxbye :/
+                                                          v
+                                                   /-------------\
+                                                   |  . (root)   |
+                                                   | Name Server |
+                                                   \-------------/
+
+               </code></pre>
+            </section>
+
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, still waiting)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                      =============== \-------------/
+                                   |
+                            www.domain.com A ?
+                                   v
+                            /-------------\        /-------------\
+                            |  .com (vsn) |        |  . (root)   |
+                            | Name Server |        | Name Server |
+                            \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, still waiting)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                      ==============> \-------------/
+                                   ^
+                            DUNNO ASK DOMAIN.COM
+                                   |
+                            /-------------\        /-------------\
+                            |  .com (vsn) |        |  . (root)   |
+                            | Name Server |        | Name Server |
+                            \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, still experiencing microsecond boredom)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/    ================================= \-------------/
+                 |
+         www.domain.com A ?
+                 v
+         /-------------\    /-------------\        /-------------\
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
+         | Name Server |    | Name Server |        | Name Server |
+         \-------------/    \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(You, still experiencing microsecond boredom)
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/    ================================= \-------------/
+                 ^
+         SURE THING, use 74.125.224.9, TTL is 300 seconds
+                 |
+         /-------------\    /-------------\        /-------------\
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
+         | Name Server |    | Name Server |        | Name Server |
+         \-------------/    \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+(That was quick, a few milliseconds)
+
+ /----------\                                      /-------------\
+ |  Client  |  <= "www.domain.com" has 74.125.224. |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+
+         SURE THING, use 74.125.224.9, TTL..
+
+         /-------------\    /-------------\        /-------------\
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
+         | Name Server |    | Name Server |        | Name Server |
+         \-------------/    \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+Now what if you ask the same question again a few seconds after ?
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "www.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+The recursive NS cached this for TTL seconds, immediate answer
+
+ /----------\                                      /-------------\
+ |  Client  |  <= A "www.domain.com" 1.2.3.4  <==  |    Campus   |
+ | Computer |          (294 seconds left)          | Name Server |
+ \----------/                                      \-------------/
+
+
+
+
+
+
+
+
+               </code></pre>
+            </section>
+
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+And what if you ask for dev.domain.com minutes later ?
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "dev.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/                                      \-------------/
+
+
+
+         /-------------\    /-------------\        /-------------\
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
+         | Name Server |    | Name Server |        | Name Server |
+         \-------------/    \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+            <section data-transition="fade-in fade-out">
+               <pre><code class="asciidoc" data-noescape>
+Name server cached the information from . and .com about domain.com
+
+ /----------\                                      /-------------\
+ |  Client  |  => Q? "dev.domain.com" Type=A  ==>  |    Campus   |
+ | Computer |                                      | Name Server |
+ \----------/    ================================= \-------------/
+                 |
+         dev.domain.com A ?
+                 v
+         /-------------\    /-------------\        /-------------\
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
+         | Name Server |    | Name Server |        | Name Server |
+         \-------------/    \-------------/        \-------------/
+
+               </code></pre>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ## Program
+            - Install a bind nameserver
+            - Configure an authoritative NS
+            - Change the config, basic rndc usage
+            - Add an authoritative zone on the NS
+            - Add a bit of security
+            - Handle the glue record
+            - Setup a slave zone
+            - SOA overview wrt Master/Slave setup
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Install dig on your server
+            ```none
+                    sh# apt-get update
+                    sh# apt-get install bind9
+                    sh# apt-get install dnsutils
+            ```
+            http://ftp.isc.org/isc/bind9/cur/9.10/doc/arm/Bv9ARM.html
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### We're setting up an authoritative-only nameserver.
+
+            Disallow recursion but allow queries from all clients:
+
+            Do the change in named.conf.options.
+
+            ```named.conf
+            options {
+                ....
+                allow-query-cache { none; };
+                allow-query { any; };
+                recursion no;
+            }
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Reconfigure bind, check for errors in the logs
+
+            ```none
+            sh# service bind9 restart
+            ```
+
+            Note that you also can use:
+            ```none
+            sh# rndc reconfig
+            ```
+
+            to trigger a configuration reload.
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Check that the changes are made, and recursion is refused:
+
+            ```none
+            sh# dig holbertonschool.com ANY @localhost
+            ```
+
+            Double check the flag and status code.
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### What does a typical zone file look like ?
+
+```bind
+@       IN SOA dns.gandi.net. hostmaster.gandi.net. (
+            1419475273 ; serial
+            10800      ; refresh (3 hours)
+            3600       ; retry (1 hour)
+            604800     ; expire (1 week)
+            10800      ; minimum (3 hours)
+        )
+
+;; NS, MX entries at apex
+    IN  NS a.dns.gandi.net.
+        NS b.dns.gandi.net.
+        NS c.dns.gandi.net.
+
+        MX 10 spool.mail.gandi.net.
+        MX 50 fb.mail.gandi.net.
+
+;; Cheap load balancer
+www     IN  A 10.5.3.1
+            A 10.5.3.2
+
+;; Short TTL override
+tmp 30  IN  A 127.0.0.3
+
+$ORIGIN seemingly.invalid.tfz.net.
+@ 10800 IN CNAME 217.70.184.38
+
+217.70.184.38 300 IN A 217.70.184.38
+```
+            </script>
+            </section>
+
+
+            <section data-markdown>
+            <script type=text/template>
+            ### We're going to add a zone now to this nameserver.
+
+            Use the /etc/bind/db.local as a template, install
+            a new file in /var/cache/bind/p/<yourdomain>.
+
+            Check that permissions for the new directory "p"
+            are correct.
+
+            ```none
+            # mkdir /var/cache/bind/p
+            # chown bind:bind !$
+            # cp /etc/bind/db.local !$/myfabulousdomain.tech
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Now configure this zone to be loaded by bind at startup.
+
+            (Do this change in the /etc/bind/named.conf.local file)
+
+            ```none
+            zone "myfabulousdomain.tech" {
+                type master; // This is a master zonefile
+                file "/var/cache/bind/p/myfabulousdomain.tech";
+            }
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Reconfigure bind, check for errors in the logs
+
+            ### Double check your zone is hosted properly.
+
+            ```none
+            # dig myfabulousdomain.tech @localhost
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Adapt the template until you have a proper setup, before we set the official nameservers for this domain at the registry.
+
+            - The nameserver should have a name, and resolve to this server's IP address
+            - You should have one NS record for the zone pointing to this nameserver's name
+
+            - Adjust the default TTL for a shorter value than the default 604k
+
+            - Have a www entry pointing to your web server machine
+            - Add any other records you like, such as a descriptive TXT record
+
+            - When you modify a zone, you can trigger a refresh using:
+            ```none
+            # rndc reload myfabulousdomain.tech
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Secure this nameserver a little more.
+            Anyone from outside, can have a full dump of your newly created zone
+            by simply asking for a zone transfer:
+
+            ```none
+            # dig myfabulousdomain.tech AXFR @X.X.X.X
+            ```
+
+            In the global options, setup the allow-transfer {} option accordingly
+            to prevent that from happening.
+
+            ```none
+            options {
+                ...
+                allow-transfer { none; };
+            }
+            ```
+
+            Do this change in named.conf.options
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Create the glue record for the server in the zone using your registrar's website.
+
+            As finding the IP address for the server is mandatory in name lookups,
+            and this server is hosted in the domain name it's responsible for,
+            we need a hint from the parent zone about this server's IP address!
+
+            The registrar will push this IP address to the TLD so this hint is installed
+            properly.
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Change your NS to point to this new nameserver.
+
+            (Double check your NS works correctly ?)
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Find yourself a slave Nameserver teammate
+
+            First, allow them to transfer the zone, using a specific
+            allow-transfer option within the zone configuration
+            block of named.conf.local
+
+            ```none
+               zone "myfabulousdomain.tech" {
+                   type master;
+                   file "/var/cache/bind/primary/myfabulousdomain.tech";
+                   allow-transfer { 1.2.3.4; };
+               }
+            ```
+
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Normally, you should be a slave too
+
+            Let's replicate our teammate's zone
+
+            Setup your NS to become a slave of your teammate domain.
+
+            Create a subdirectory for slave zones, in /var/cache/bind/s/
+
+            Do not forget to fix permissions.
+
+            Create a zone for their domain in named.conf.local, declare it a
+            slave zone, setup the appropriate master and use the domain name
+            as a filename in this new directory for the zone.
+
+            ```none
+            zone "theirdomain.site" {
+               type slave;
+               file "/var/cache/bind/s/theirdomain.site";
+               masters { 1.2.3.5; };
+            }
+            ```
+            </script>
+            </section>
+
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Check bind slave setup
+
+            Check that bind automatically downloads the zonefile from their server,
+            and stores it automatically in the new directory.
+
+            If not, look at logs on the master NS.
+
+            To trigger a zone transfer, use:
+
+            ```none
+            rndc retransfer domain.zone.name
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### Check your master replicates correctly
+            Check, with dig, that the configured slave also has a copy of your own zone.
+
+            If that is the case, add the slave NS (you should ask for its hostname)
+            as a NS of your own domain in your zone, then on the registrar interface
+            so that TLD servers have the information.
+
+            Something like that:
+            ```bind
+            @       IN  NS  myns
+            @       IN  NS  theirns.dotterminated.domain.name.
+            ```
+            </script>
+            </section>
+
+            <section data-markdown>
+            <script type=text/template>
+            ### A quick look at SOA fields
+            When you modify zone data, the slave will not update itself unless you
+            change the serial number of the zone to a higher number
+            (usually increments). A convention is to use today's date (20160401,
+            if appropriate) followed by a two-digits version number. That allows
+            for ~100 changes a day, which is way enough.
+
+            Double check this - change zone data, see in the logs that your NS
+            is notifying slaves, but that this change only gets propagated with the
+            right serial number increment.
+
+            On any slave, you can force a download using:
+
+            ```none
+            # rndc retransfer <zone>
+            ```
+            </script>
+            </section>
+
+            			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+                autoSlideStoppable: false,
+                width: '100%',
+                height: '100%',
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
