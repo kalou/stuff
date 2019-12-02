@@ -208,14 +208,24 @@ INTRODUCTION
 * A *protocol* to query for *information* associated with a *name*
                 </script>
             </section>
+<!--
             <section>
 The Network Information Center (NIC), also known as InterNIC from 1993 until 1998, was the internet governing body primarily responsible for domain name allocations and X.500 directory services. From its inception in 1972 until October 1, 1991, it was run by the Stanford Research Institute (now known as SRI International), and led by Jake Feinler. From October 1991 until September 18, 1998, it was run by Network Solutions. Thereafter, the responsibility was assumed by the Internet Corporation for Assigned Names and Numbers (ICANN).
 (source : Wikipedia)
             </section>
-            <section data-transition="slide-in fade-out">
-            <p>Name all the things
-            <p><img src="res/hiera0.jpg">
-            </section>
+-->
+			<section data-transition="fade-in fade-out">
+				<section>
+					<p>Name all the things</p>
+					<p><img src="res/hiera0.jpg"></p>
+				</section>
+				<section>
+					<p>And now everyone adds a server to handle their zones</p>
+					<p><img src="res/hiera5.jpg"></p>
+				</section>
+			</section>
+<!--
+
             <section data-transition="fade-in fade-out">
             <p>Name all the things, Network Solutions gets the .com (and others..)
             <p><img src="res/hiera1.jpg">
@@ -232,14 +242,8 @@ The Network Information Center (NIC), also known as InterNIC from 1993 until 199
             <p>"." is a little bit special, is it
             <p><img src="res/hiera4.jpg">
             </section>
-            <section data-transition="fade-in fade-out">
-            <p>And now everyone adds a server to handle their zones
-            <p><img src="res/hiera5.jpg">
-            </section>
+-->
 
-            <section data-transition="fade-in" data-markdown>
-## I'm tired of drawing. Ascii now.
-            </section>
             <section data-markdown>
 # 3 Main actors in DNS:
 * The resolver
@@ -471,7 +475,7 @@ You, typing "www.domain.com":
                                                   ? www.domain.com
                                                           v
                                                    /-------------\
-                                                   |  . (gods)   |
+                                                   |  . (root)   |
                                                    | Name Server |
                                                    \-------------/
 
@@ -489,12 +493,13 @@ You, typing "www.domain.com":
                                                   DUNNO ASK TO .COM
                                                           |
                                                    /-------------\
-                                                   |  . (gods)   |
+                                                   |  . (root)   |
                                                    | Name Server |
                                                    \-------------/
 
                </code></pre>
             </section>
+<!--
             <section data-transition="fade-in fade-out">
                <pre><code class="asciidoc" data-noescape>
 (You, still waiting)
@@ -507,12 +512,13 @@ You, typing "www.domain.com":
                                                       kthxbye :/
                                                           v
                                                    /-------------\
-                                                   |  . (gods)   |
+                                                   |  . (root)   |
                                                    | Name Server |
                                                    \-------------/
 
                </code></pre>
             </section>
+-->
 
             <section data-transition="fade-in fade-out">
                <pre><code class="asciidoc" data-noescape>
@@ -526,7 +532,7 @@ You, typing "www.domain.com":
                             www.domain.com A ?
                                    v
                             /-------------\        /-------------\
-                            |  .com (vsn) |        |  . (gods)   |
+                            |  .com (vsn) |        |  . (root)   |
                             | Name Server |        | Name Server |
                             \-------------/        \-------------/
 
@@ -544,7 +550,7 @@ You, typing "www.domain.com":
                             DUNNO ASK DOMAIN.COM
                                    |
                             /-------------\        /-------------\
-                            |  .com (vsn) |        |  . (gods)   |
+                            |  .com (vsn) |        |  . (root)   |
                             | Name Server |        | Name Server |
                             \-------------/        \-------------/
 
@@ -562,7 +568,7 @@ You, typing "www.domain.com":
          www.domain.com A ?
                  v
          /-------------\    /-------------\        /-------------\
-         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -580,7 +586,7 @@ You, typing "www.domain.com":
          SURE THING, use 74.125.224.9, TTL is 300 seconds
                  |
          /-------------\    /-------------\        /-------------\
-         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -598,7 +604,7 @@ You, typing "www.domain.com":
          SURE THING, use 74.125.224.9, TTL..
 
          /-------------\    /-------------\        /-------------\
-         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -653,7 +659,7 @@ And what if you ask for dev.domain.com minutes later ?
 
 
          /-------------\    /-------------\        /-------------\
-         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -671,7 +677,7 @@ Name server cached the information from . and .com about domain.com
          dev.domain.com A ?
                  v
          /-------------\    /-------------\        /-------------\
-         |  domain.com |    |  .com (vsn) |        |  . (gods)   |
+         |  domain.com |    |  .com (vsn) |        |  . (root)   |
          | Name Server |    | Name Server |        | Name Server |
          \-------------/    \-------------/        \-------------/
 
@@ -758,10 +764,7 @@ tfz.net.                10800   IN      MX      50 fb.mail.gandi.net.
 </code></pre>
             </section>
             <section data-markdown>
-#### Install dig, play around DNS.
-##### Lookup a few names: whe.re, some.whe.re, any.whe.re
-##### Let's talk about the results.
-##### Any other name ideas ? else.whe.re ?
+#### Install dig! have fun with DNS.
 ##### Q?
             </section>
 
